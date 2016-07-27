@@ -82,7 +82,7 @@ zoi = furs.calculate_zoi(
 Now that we got this ZOI code, we send it together with other stuff to FURS and get back the response that contains EOR (unique invoice code):
 
 ```ruby
-// find other params in the source (refunds,...)
+# find other params in the source (refunds,...)
 response = furs.report_invoice(
             zoi: zoi, 
             tax_number: 10115609, 
