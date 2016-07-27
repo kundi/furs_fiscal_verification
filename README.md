@@ -28,8 +28,22 @@ Or install it yourself as:
 
 # Register an immovable business premise
 
-```
-response = furs.register_immovable_business_premise(tax_number: 10115609, premise_id: 'BP105', real_estate_cadastral_number: 112, real_estate_building_number: 11, real_estate_building_section_number: 1, street: 'Trzaska cesta', house_number: '24', house_number_additional: 'A', community: 'Ljubljana', city: 'Ljubljana', postal_code: '1000', validity_date: Date.today, software_supplier_tax_number: 24564444, foreign_software_supplier_name: 'Neki')
+```ruby
+response = furs.register_immovable_business_premise(
+  tax_number: 10115609, 
+  premise_id: 'BP105', 
+  real_estate_cadastral_number: 112, 
+  real_estate_building_number: 11, 
+  real_estate_building_section_number: 1, 
+  street: 'Trzaska cesta', 
+  house_number: '24', 
+  house_number_additional: 'A', 
+  community: 'Ljubljana', 
+  city: 'Ljubljana', 
+  postal_code: '1000', 
+  validity_date: Date.today, 
+  software_supplier_tax_number: 24564444, 
+  foreign_software_supplier_name: 'Neki')
 ```
 
 If response is OK and withour errors, you should receive this response:
@@ -42,10 +56,59 @@ In case there is data/parameters missing (or they are of wrong type - be careful
 
 To see the error, you need to decode the response:
 
-```
+```ruby
 JSON.parse(Base64.urlsafe_decode64(response.body.split('.')[1]))
 => {"BusinessPremiseResponse"=>{"Header"=>{"MessageID"=>"b7b1e98f-dcae-47af-b829-3237802a2688", "DateTime"=>"2016-07-27T23:15:05"}, "Error"=>{"ErrorCode"=>"S002", "ErrorMessage"=>"Sporočilo ni v skladu s shemo JSON"}}}
-````
+```
+
+# Invoice verification
+
+Prepare your invoice data and calculate ZOI code:
+
+```
+zoi = furs.calculate_zoi(
+        tax_number: 10115609, 
+        issued_date: Date.today, 
+        invoice_number: '11', 
+        business_premise_id: 'BP105', 
+        electronic_device_id: '0001', 
+        invoice_amount: 19.15)
+ 
+ => "51a40dcabb147d1c76d843ee98f951aa"
+```
+
+Now that we got this ZOI code, we send it together with other stuff to FURS and get back the response that contains EOR (unique invoice code):
+
+```ruby
+response = furs.report_invoice(
+            zoi: zoi, 
+            tax_number: 10115609, 
+            issued_date: Date.today,
+            invoice_number: '11', 
+            business_premise_id: 'BP105', 
+            electronic_device_id: '0001', 
+            invoice_amount: 19.15, 
+            low_tax_rate_base: 35.14, 
+            low_tax_rate_amount: 3.34, 
+            high_tax_rate_base: 23.14, 
+            high_tax_rate_amount: 5.09)
+```
+
+If everything goes OK, we can extract the EOR code like so:
+
+```ruby
+eor = JSON.parse(Base64.decode64(response.body.split('.')[1]))["InvoiceResponse"]["UniqueInvoiceID"]
+ => "dedc5383-169f-4c0e-b369-d64ec8797170"
+```
+
+Now we have ZOI and EOR code. We need to print both to our invoice. We also need to print a QR code. The code that we use to generate the QR code is generated like this:
+
+```ruby
+furs.prepare_printable(invoice_number, zoi, issued_date)
+=> "108519284076690038963265761078884782506111607270000000"
+```
+
+Use the latter for input to your QR rendering library.
 
 ## Development
 
