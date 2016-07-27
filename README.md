@@ -20,7 +20,7 @@ Or install it yourself as:
 
 ## Usage
 
-# Initialize the client
+### Initialize the client
 
 ```ruby
 furs = Furs.new(cert_path: "/path/to/your-certificate.p12", cert_password: "SCREWFURS")
@@ -28,7 +28,7 @@ furs = Furs.new(cert_path: "/path/to/your-certificate.p12", cert_password: "SCRE
 
 *You can pass either sandbox or production certificate*
 
-# Register an immovable business premise
+### Register an immovable business premise
 
 ```ruby
 response = furs.register_immovable_business_premise(
@@ -63,7 +63,7 @@ JSON.parse(Base64.urlsafe_decode64(response.body.split('.')[1]))
 => {"BusinessPremiseResponse"=>{"Header"=>{"MessageID"=>"b7b1e98f-dcae-47af-b829-3237802a2688", "DateTime"=>"2016-07-27T23:15:05"}, "Error"=>{"ErrorCode"=>"S002", "ErrorMessage"=>"Sporočilo ni v skladu s shemo JSON"}}}
 ```
 
-# Invoice verification
+### Invoice verification
 
 Prepare your invoice data and calculate ZOI code:
 
