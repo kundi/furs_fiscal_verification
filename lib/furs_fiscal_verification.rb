@@ -224,7 +224,7 @@ class Furs
     formatted_date = issued_date.strftime('%y%m%d%H%M%S')
     zoi_base_10 = zoi.hex.to_s(10).rjust(39, '0')
     data = "#{zoi_base_10}#{tax_number}#{formatted_date}"
-    control = data.chars.map(&:to_i).inject(0){|sum,x| sum + x } % 10
+    control = data.chars.map(&:to_i).inject(:+) % 10
     "#{data}#{control}"
   end
 
