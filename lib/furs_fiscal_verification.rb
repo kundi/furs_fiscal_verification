@@ -220,6 +220,14 @@ class Furs
     _post(path: REGISTER_BUSINESS_UNIT_PATH, data: data)
   end
 
+  def prepare_printable(tax_number, zoi, issued_date)
+    formatted_date = issued_date.strftime('%y%m%d%H%M%S')
+    zoi_base_10 = zoi.hex.to_s(10).rjust(39, '0')
+    data = "#{zoi_base_10}#{tax_number}#{formatted_date}"
+    control = data.chars.map(&:to_i).sum % 10
+    "#{data}#{control}"
+  end
+
   private
   def _post(path:, data:, sign: true)
     if sign
@@ -258,14 +266,5 @@ class Furs
   def _sign(content)
     digest = OpenSSL::Digest::SHA256.new
     @cert.key.sign(digest, content)
-  end
-
-  # Calculate code that is used for QR code generation
-  def _prepare_printable(tax_number, zoi, issued_date)
-    formatted_date = issued_date.strftime('%y%m%d%H%M%S')
-    zoi_base_10 = zoi.hex.to_s(10).rjust(39, '0')
-    data = "#{zoi_base_10}#{tax_number}#{formatted_date}"
-    control = data.chars.map(&:to_i).sum % 10
-    "#{data}#{control}"
   end
 end
