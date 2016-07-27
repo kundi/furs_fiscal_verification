@@ -1,6 +1,6 @@
 # Ruby library for fiscal invoice verification in Republic of Slovenia (Ruby koda za davčno potrjevanje računov)
 
-**DISCLAIMER**: This code was not  tested in production yet and I can not guarantee it's completely conformed to FURS's technical specification. Test cases described below have been tested in the FURS sandbox environment. The code is a Ruby port of  [python-furs-fiscal](https://github.com/boris-savic/python-furs-fiscal), which is offering more info on the topic. See also [official documentation](http://www.datoteke.fu.gov.si/dpr/files/TehnicnaDokumentacijaVer1.6.pdf). Pull requests are most welcome. 
+**DISCLAIMER**: This code was not  tested in production yet and I can not guarantee it's completely conformed to FURS's technical specification. Test cases described below have been tested in the FURS sandbox environment. The code is a Ruby port of  [python-furs-fiscal](https://github.com/boris-savic/python-furs-fiscal), which is offering more info on the topic. See also [official documentation](http://www.datoteke.fu.gov.si/dpr/files/TehnicnaDokumentacijaVer1.6.pdf).
 
 ## Installation
 
@@ -48,7 +48,7 @@ response = furs.register_immovable_business_premise(
   foreign_software_supplier_name: 'Neki')
 ```
 
-If response is OK and withour errors, you should receive this response:
+If response is OK and without errors, you should receive this response:
 
 `#<Net::HTTPOK 200 OK readbody=true>`
 
