@@ -284,6 +284,10 @@ class Furs
   end
 
   def _handle_response(response)
+    if response.code.to_i >= 201
+      fail Furs::ServerError, 'Server error.'
+    end
+    
     if (message = response.instance_variable_get("@message")) =~ /VAT/i
       fail Furs::VATError.new(message).tap { |e| e.response = response }
     end
