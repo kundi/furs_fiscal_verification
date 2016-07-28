@@ -235,7 +235,15 @@ class Furs
     "#{data}#{control}"
   end
 
+  Error = Class.new(StandardError) do
+    attr_accessor :response
+  end
+
+  ServerError = Class.new(Furs::Error)
+  VATError = Class.new(Furs::Error)
+
   private
+
   def _post(path:, data:, sign: true)
     if sign
       data = {
@@ -253,7 +261,7 @@ class Furs
     https.cert = @cert.certificate
     https.key = @cert.key
     req = Net::HTTP::Post.new(uri.path, 'Content-Type' => 'application/json; charset=UTF-8')
-    https.request(req, data.to_json)
+    _handle_response https.request(req, data.to_json)
   end
 
   def _jws_header
@@ -273,5 +281,13 @@ class Furs
   def _sign(content)
     digest = OpenSSL::Digest::SHA256.new
     @cert.key.sign(digest, content)
+  end
+
+  def _handle_response(response)
+    if (message = response.instance_variable_get("@message")) =~ /VAT/i
+      fail Furs::VATError.new(message).tap { |e| e.response = response }
+    end
+
+    response
   end
 end

@@ -25,7 +25,7 @@ RSpec.describe Furs do
          community: 'Ljubljana',
          city: 'Ljubljana',
          postal_code: '1000',
-         validity_date: Date.today,
+         validity_date: Date.today - 10,
          software_supplier_tax_number: 24564444,
          foreign_software_supplier_name: 'Neki'}
       }
@@ -47,7 +47,7 @@ RSpec.describe Furs do
       context 'fail with wrong data' do
         let(:fail_load) { Hash[ok_load.keys.map { |k| [k, nil] }].merge(validity_date: Date.today) }
         let(:register) { subject.register_immovable_business_premise(fail_load) }
-        it { expect(register).not_to be_kind_of(Net::HTTPOK) }
+        it { expect { register }.to raise_error(Furs::VATError) }
       end
     end
   end
