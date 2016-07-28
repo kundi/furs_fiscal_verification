@@ -23,7 +23,7 @@ Or install it yourself as:
 ### Initialize the client
 
 ```ruby
-furs = Furs.new(cert_path: "/path/to/your-certificate.p12", cert_password: "SCREWFURS")
+furs = Furs.new(cert_path: "/path/to/your-certificate.p12", cert_password: "SCREWFURS", production: false)
 ```
 
 *You can pass either sandbox or production certificate*
