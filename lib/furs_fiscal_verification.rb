@@ -1,4 +1,4 @@
-require "furs_fiscal_verification/version"
+require 'furs_fiscal_verification/version'
 require 'uri'
 require 'net/http'
 require 'net/https'
@@ -6,12 +6,15 @@ require 'digest'
 require 'jwt'
 require 'openssl'
 
+ENV['FFV_ENV'] ||= 'production'
+
 class Furs
+  API_VERSION = 'v1'
   FURS_TEST_ENDPOINT = 'https://blagajne-test.fu.gov.si:9002'
   FURS_PRODUCTION_ENDPOINT = 'https://blagajne.fu.gov.si:9003'
 
-  REGISTER_BUSINESS_UNIT_PATH = '/v1/cash_registers/invoices/register'
-  INVOICE_ISSUE_PATH = '/v1/cash_registers/invoices'
+  REGISTER_BUSINESS_UNIT_PATH = "/#{API_VERSION}/cash_registers/invoices/register"
+  INVOICE_ISSUE_PATH = "/#{API_VERSION}/cash_registers/invoices"
 
   LOW_TAX_RATE = 9.5
   HIGH_TAX_RATE = 22
@@ -22,7 +25,7 @@ class Furs
   end
 
   def furs_accessible?(msg: 'ping')
-    data = { 'EchoRequest' => msg }
+    data = {'EchoRequest' => msg}
     response = _post(data: data, path: "/v1/cash_registers/echo", sign: false)
     JSON.parse(response.body)["EchoResponse"] == msg
   end
@@ -30,7 +33,7 @@ class Furs
   def calculate_zoi(tax_number:, issued_date:, invoice_number:, business_premise_id:, electronic_device_id:,
                     invoice_amount:)
     content = "#{tax_number}#{issued_date.strftime('%d-%m-%Y %H:%M:%S')}#{invoice_number}#{business_premise_id}
-               #{electronic_device_id}#{invoice_amount}"
+    #{electronic_device_id}#{invoice_amount}"
 
     Digest::MD5.hexdigest(_sign(content))
   end
@@ -66,33 +69,37 @@ class Furs
 
     data = {}
     data['InvoiceRequest'] = {
-      "Header" => {
-        "MessageID" => SecureRandom.uuid,
-        "DateTime" => DateTime.now.strftime("%Y-%m-%dT%H:%M:%SZ")
-      },
-      'Invoice' => {
-        'TaxNumber' => tax_number.to_i,
-        'IssueDateTime' => issued_date.strftime("%Y-%m-%dT%H:%M:%SZ"),
-        'NumberingStructure' => numbering_structure,
-        'InvoiceIdentifier' => {
-          'BusinessPremiseID' => business_premise_id,
-          'ElectronicDeviceID' => electronic_device_id,
-          'InvoiceNumber' => invoice_number
+        'Header' => {
+            'MessageID' => SecureRandom.uuid,
+            'DateTime' => DateTime.now.strftime("%Y-%m-%dT%H:%M:%SZ")
         },
-        'InvoiceAmount' => invoice_amount,
-        'PaymentAmount' => if payment_amount then payment_amount else invoice_amount end,
-        'ProtectedID' => zoi,
-        'TaxesPerSeller' => []
-      }
+        'Invoice' => {
+            'TaxNumber' => tax_number.to_i,
+            'IssueDateTime' => issued_date.strftime("%Y-%m-%dT%H:%M:%SZ"),
+            'NumberingStructure' => numbering_structure,
+            'InvoiceIdentifier' => {
+                'BusinessPremiseID' => business_premise_id,
+                'ElectronicDeviceID' => electronic_device_id,
+                'InvoiceNumber' => invoice_number
+            },
+            'InvoiceAmount' => invoice_amount,
+            'PaymentAmount' => if payment_amount
+                                 payment_amount
+                               else
+                                 invoice_amount
+                               end,
+            'ProtectedID' => zoi,
+            'TaxesPerSeller' => []
+        }
     }
 
     tax_spec = {}
     if low_tax_rate_base || high_tax_rate_base
       tax_spec['VAT'] = _build_tax_specification(
-        low_tax_rate_base,
-        low_tax_rate_amount,
-        high_tax_rate_base,
-        high_tax_rate_amount)
+          low_tax_rate_base,
+          low_tax_rate_amount,
+          high_tax_rate_base,
+          high_tax_rate_amount)
     end
 
     tax_spec['NontaxableAmount'] = non_taxable_amount if non_taxable_amount
@@ -131,13 +138,13 @@ class Furs
 
     if reference_invoice_number
       reference_invoice = [{
-        'ReferenceInvoiceIdentifier' => {
-          'BusinessPremiseID' => reference_invoice_business_premise_id,
-          'ElectronicDeviceID' => reference_invoice_electronic_device_id,
-          'InvoiceNumber' => reference_invoice_number
-        },
-        'ReferenceInvoiceIssueDateTime' => reference_invoice_issued_date.strftime("%Y-%m-%dT%H:%M:%SZ")
-      }]
+                               'ReferenceInvoiceIdentifier' => {
+                                   'BusinessPremiseID' => reference_invoice_business_premise_id,
+                                   'ElectronicDeviceID' => reference_invoice_electronic_device_id,
+                                   'InvoiceNumber' => reference_invoice_number
+                               },
+                               'ReferenceInvoiceIssueDateTime' => reference_invoice_issued_date.strftime("%Y-%m-%dT%H:%M:%SZ")
+                           }]
 
       data['InvoiceRequest']['Invoice']['ReferenceInvoice'] = reference_invoice
     end
@@ -150,15 +157,15 @@ class Furs
                                high_tax_rate_base,
                                high_tax_rate_amount)
     low_tax_spec = {
-      'TaxRate' => LOW_TAX_RATE,
-      'TaxableAmount' => low_tax_rate_base,
-      'TaxAmount' => low_tax_rate_amount
+        'TaxRate' => LOW_TAX_RATE,
+        'TaxableAmount' => low_tax_rate_base,
+        'TaxAmount' => low_tax_rate_amount
     }
 
     high_tax_spec = {
-      'TaxRate' => HIGH_TAX_RATE,
-      'TaxableAmount' => high_tax_rate_base,
-      'TaxAmount' => high_tax_rate_amount
+        'TaxRate' => HIGH_TAX_RATE,
+        'TaxableAmount' => high_tax_rate_base,
+        'TaxAmount' => high_tax_rate_amount
     }
 
     [low_tax_spec, high_tax_spec].select { |spec| !spec['TaxableAmount'].nil? }
@@ -181,40 +188,40 @@ class Furs
                                           special_notes: 'No notes')
 
     data = {
-      "BusinessPremiseRequest" => {
-        "Header" => {
-          "MessageID" => SecureRandom.uuid,
-          "DateTime" => DateTime.now.strftime("%Y-%m-%dT%H:%M:%SZ")
-        },
-        "BusinessPremise" => {
-          "TaxNumber" => tax_number.to_i,
-          "BusinessPremiseID" => premise_id,
-          "BPIdentifier" => {
-            "RealEstateBP" => {
-              "PropertyID" => {
-                "CadastralNumber" => real_estate_cadastral_number.to_i,
-                "BuildingNumber" => real_estate_building_number.to_i,
-                "BuildingSectionNumber" => real_estate_building_section_number.to_i
-              },
-              "Address" => {
-                "Street" => street,
-                "HouseNumber" => house_number.to_s,
-                "HouseNumberAdditional" => house_number_additional,
-                "Community" => community,
-                "City" => city,
-                "PostalCode" => postal_code.to_s
-              }
+        "BusinessPremiseRequest" => {
+            "Header" => {
+                "MessageID" => SecureRandom.uuid,
+                "DateTime" => DateTime.now.strftime("%Y-%m-%dT%H:%M:%SZ")
+            },
+            "BusinessPremise" => {
+                "TaxNumber" => tax_number.to_i,
+                "BusinessPremiseID" => premise_id,
+                "BPIdentifier" => {
+                    "RealEstateBP" => {
+                        "PropertyID" => {
+                            "CadastralNumber" => real_estate_cadastral_number.to_i,
+                            "BuildingNumber" => real_estate_building_number.to_i,
+                            "BuildingSectionNumber" => real_estate_building_section_number.to_i
+                        },
+                        "Address" => {
+                            "Street" => street,
+                            "HouseNumber" => house_number.to_s,
+                            "HouseNumberAdditional" => house_number_additional,
+                            "Community" => community,
+                            "City" => city,
+                            "PostalCode" => postal_code.to_s
+                        }
+                    }
+                },
+                "ValidityDate" => validity_date.strftime("%Y-%m-%d"),
+                "SoftwareSupplier" => [
+                    {
+                        "NameForeign" => foreign_software_supplier_name
+                    }
+                ],
+                "SpecialNotes" => special_notes
             }
-          },
-          "ValidityDate" => validity_date.strftime("%Y-%m-%d"),
-          "SoftwareSupplier" => [
-            {
-              "NameForeign" => foreign_software_supplier_name
-            }
-          ],
-          "SpecialNotes" => special_notes
         }
-      }
     }
 
     _post(path: REGISTER_BUSINESS_UNIT_PATH, data: data)
@@ -228,11 +235,19 @@ class Furs
     "#{data}#{control}"
   end
 
+  Error = Class.new(StandardError) do
+    attr_accessor :response
+  end
+
+  ServerError = Class.new(Furs::Error)
+  VATError = Class.new(Furs::Error)
+
   private
+
   def _post(path:, data:, sign: true)
     if sign
       data = {
-        'token' => _jwt_sign(header: _jws_header, payload: data)
+          'token' => _jwt_sign(header: _jws_header, payload: data)
       }
     end
 
@@ -246,15 +261,15 @@ class Furs
     https.cert = @cert.certificate
     https.key = @cert.key
     req = Net::HTTP::Post.new(uri.path, 'Content-Type' => 'application/json; charset=UTF-8')
-    https.request(req, data.to_json)
+    _handle_response https.request(req, data.to_json)
   end
 
   def _jws_header
     {
-      'alg' => 'RS256',
-      'subject_name' => @cert.certificate.subject.to_a.map { |subject| "#{subject[0]}=#{subject[1]}" }.join(","),
-      'issuer_name' => @cert.certificate.issuer.to_a.map { |subject| "#{subject[0]}=#{subject[1]}" }.join(","),
-      'serial' => @cert.certificate.serial.to_i
+        'alg' => 'RS256',
+        'subject_name' => @cert.certificate.subject.to_a.map { |subject| "#{subject[0]}=#{subject[1]}" }.join(","),
+        'issuer_name' => @cert.certificate.issuer.to_a.map { |subject| "#{subject[0]}=#{subject[1]}" }.join(","),
+        'serial' => @cert.certificate.serial.to_i
     }
   end
 
@@ -266,5 +281,17 @@ class Furs
   def _sign(content)
     digest = OpenSSL::Digest::SHA256.new
     @cert.key.sign(digest, content)
+  end
+
+  def _handle_response(response)
+    if response.code.to_i >= 201
+      fail Furs::ServerError, 'Server error.'
+    end
+    
+    if (message = response.instance_variable_get("@message")) =~ /VAT/i
+      fail Furs::VATError.new(message).tap { |e| e.response = response }
+    end
+
+    response
   end
 end

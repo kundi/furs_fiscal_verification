@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
-require "bundler/setup"
-require "furs_fiscal_verification"
+require 'bundler/setup'
+require 'furs_fiscal_verification'
 
 # You can add fixtures and/or initialization code here to make experimenting
 # with your gem easier. You can also use a different console, if you like.
@@ -10,5 +10,5 @@ require "furs_fiscal_verification"
 # require "pry"
 # Pry.start
 
-require "irb"
+require 'irb'
 IRB.start
