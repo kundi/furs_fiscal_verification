@@ -1,4 +1,4 @@
-# Ruby library for fiscal invoice verification in Republic of Slovenia (Ruby koda za davčno potrjevanje računov)
+# A Ruby library for reporting invoices to Slovenian tax authority's API (fiscal invoice verification) 
 
 ## Installation
 **DISCLAIMER**: ~~This code was not  tested in production yet and I can not guarantee it's completely conformed to FURS's technical specification. Test cases described below have been tested in the FURS sandbox environment.~~ (Update: as of 30.10.2016, this gem is running in production at [RankTrackr](http://ranktrackr.com) and [Nightwatch](http://nightwatch.io)). The code is a (omitted) Ruby port of  [python-furs-fiscal](https://github.com/boris-savic/python-furs-fiscal), which is offering more info and documentation on the topic and better explanation on various parameters. See also [official documentation](http://www.datoteke.fu.gov.si/dpr/files/TehnicnaDokumentacijaVer1.6.pdf). 
